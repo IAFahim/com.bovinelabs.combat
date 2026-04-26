@@ -134,8 +134,8 @@ namespace BovineLabs.Combat.Navigation
             try
             {
                 // Find nearest polygons to start/end
-                var startRef = DtPolyRef.Null;
-                var endRef = DtPolyRef.Null;
+                var startRef = default(DtPolyRef);
+                var endRef = default(DtPolyRef);
                 var startPt = start;
                 var endPt = end;
 
@@ -145,7 +145,7 @@ namespace BovineLabs.Combat.Navigation
                 status = query->FindNearestPoly(end, halfExtents, ref filter, ref endRef, ref endPt);
                 if (!Detour.StatusSucceed(status)) return false;
 
-                if (startRef == DtPolyRef.Null || endRef == DtPolyRef.Null)
+                if (startRef.Equals(default) || endRef.Equals(default))
                     return false;
 
                 // Find polygon path
