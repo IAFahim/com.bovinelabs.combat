@@ -97,7 +97,7 @@ namespace BovineLabs.Combat.Navigation
     /// NavMesh area costs for pathfinding queries.
     /// 64 area types, matching Detour's max areas.
     /// </summary>
-    public struct NavMeshAreaCosts : IComponentData
+    public unsafe struct NavMeshAreaCosts : IComponentData
     {
         public fixed float Costs[64];
         public ushort IncludeFlags;
