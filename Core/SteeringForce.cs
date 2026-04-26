@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Unity.Entities;
 using Unity.Mathematics;
 
@@ -30,7 +31,6 @@ namespace BovineLabs.Combat.Core
             BehaviorType = SteeringBehaviorType.None,
         };
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsZero => math.lengthsq(Linear) < 0.0001f;
     }
 
