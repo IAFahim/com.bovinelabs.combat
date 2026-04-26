@@ -20,8 +20,6 @@ namespace BovineLabs.Combat.Retreat
         /// <param name="safeDistance">Distance at which retreating stops.</param>
         /// <param name="maxSpeed">Agent's maximum movement speed.</param>
         /// <returns>Steering force: away from threat at maxSpeed, or zero if safe.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 ComputeRetreatDirection(float2 agentPos, float2 threatPos, float safeDistance, float maxSpeed)
         {

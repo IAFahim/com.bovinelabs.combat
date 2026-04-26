@@ -20,8 +20,6 @@ namespace BovineLabs.Combat.Blend
         /// <param name="weights">Array of weights (one per force).</param>
         /// <param name="count">Number of valid entries.</param>
         /// <returns>Weighted sum of forces.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 WeightedBlend(NativeArray<float2> forces, NativeArray<float> weights, int count)
         {
@@ -49,8 +47,6 @@ namespace BovineLabs.Combat.Blend
         /// <param name="priorities">Array of priorities (one per force).</param>
         /// <param name="count">Number of valid entries.</param>
         /// <returns>Highest priority non-zero force, or average of tied top-priority forces.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 PrioritySelect(NativeArray<float2> forces, NativeArray<float> priorities, int count)
         {
@@ -92,8 +88,6 @@ namespace BovineLabs.Combat.Blend
         /// <param name="force">Force vector to truncate.</param>
         /// <param name="maxSpeed">Maximum allowed magnitude.</param>
         /// <returns>Truncated force.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 TruncateToMaxSpeed(float2 force, float maxSpeed)
         {

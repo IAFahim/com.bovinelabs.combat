@@ -19,8 +19,6 @@ namespace BovineLabs.Combat.Guard
         /// <param name="enemyPos">Enemy position on the XZ plane.</param>
         /// <param name="engagementRadius">Maximum distance at which the agent engages enemies.</param>
         /// <returns>True if the enemy is within engagement range.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool ShouldEngage(float2 agentPos, float2 enemyPos, float engagementRadius)
         {
@@ -37,8 +35,6 @@ namespace BovineLabs.Combat.Guard
         /// <param name="postPos">Guard post position on the XZ plane.</param>
         /// <param name="returnRadius">Maximum distance the agent may stray from the post.</param>
         /// <returns>True if the agent is too far from post and should return.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool ShouldReturn(float2 agentPos, float2 postPos, float returnRadius)
         {

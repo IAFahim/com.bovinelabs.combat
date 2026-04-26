@@ -14,8 +14,6 @@ namespace BovineLabs.Combat.Formation
         /// Compute line formation positions behind the leader.
         /// Units are placed perpendicular to leaderForward at spacing intervals.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         public static NativeArray<float2> ComputeLinePositions(
             float2 leaderPos,
             float2 leaderForward,
@@ -43,8 +41,6 @@ namespace BovineLabs.Combat.Formation
         /// Compute wedge formation positions. A V-shape expanding behind the leader.
         /// angle: half-angle of the wedge in radians.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         public static NativeArray<float2> ComputeWedgePositions(
             float2 leaderPos,
             float2 leaderForward,
@@ -78,8 +74,6 @@ namespace BovineLabs.Combat.Formation
         /// Compute grid formation positions. Rows and columns behind the leader.
         /// columns: number of units per row.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         public static NativeArray<float2> ComputeGridPositions(
             float2 leaderPos,
             float2 leaderForward,
@@ -116,8 +110,6 @@ namespace BovineLabs.Combat.Formation
         /// <summary>
         /// Compute circle formation positions. Units evenly distributed around a circle.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         public static NativeArray<float2> ComputeCirclePositions(
             float2 centerPos,
             float radius,
@@ -141,8 +133,6 @@ namespace BovineLabs.Combat.Formation
         /// <summary>
         /// Compute column formation positions. Single file behind the leader.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         public static NativeArray<float2> ComputeColumnPositions(
             float2 leaderPos,
             float2 leaderForward,
@@ -168,8 +158,6 @@ namespace BovineLabs.Combat.Formation
         /// Compute V formation positions. Similar to wedge but with a tighter angle.
         /// angle: half-angle of the V in radians.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         public static NativeArray<float2> ComputeVPositions(
             float2 leaderPos,
             float2 leaderForward,

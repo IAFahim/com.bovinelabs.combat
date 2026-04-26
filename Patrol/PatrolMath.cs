@@ -18,8 +18,6 @@ namespace BovineLabs.Combat.Patrol
         /// <param name="total">Total number of waypoints.</param>
         /// <param name="loop">Whether the patrol loops back to the start.</param>
         /// <returns>Next waypoint index.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int NextWaypointIndex(int current, int total, bool loop)
         {
@@ -42,8 +40,6 @@ namespace BovineLabs.Combat.Patrol
         /// <param name="halfExtents">Half-extents (half-width, half-depth).</param>
         /// <param name="rng">Reference to a Random instance (will be consumed).</param>
         /// <returns>Random point within the area bounds.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 RandomPointInArea(float2 center, float2 halfExtents, ref Random rng)
         {
@@ -60,8 +56,6 @@ namespace BovineLabs.Combat.Patrol
         /// <param name="center">Area center.</param>
         /// <param name="halfExtents">Area half-extents.</param>
         /// <returns>True if the position is inside the area.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsInsideArea(float2 pos, float2 center, float2 halfExtents)
         {

@@ -23,8 +23,6 @@ namespace BovineLabs.Combat.Ambush
         /// <param name="phase">Current ambush phase.</param>
         /// <param name="springTarget">Target to spring toward (only used when phase == Springing).</param>
         /// <returns>Steering force on the XZ plane.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 ComputeAmbushForce(float2 agentPos, float2 hidePos, float maxSpeed, AmbushPhase phase, float2 springTarget)
         {
@@ -49,8 +47,6 @@ namespace BovineLabs.Combat.Ambush
         /// <param name="ambushPos">Center of the ambush (hide position).</param>
         /// <param name="triggerRadius">Radius to check.</param>
         /// <returns>True if enemy is within trigger radius.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsEnemyInTrigger(float2 enemyPos, float2 ambushPos, float triggerRadius)
         {
@@ -61,8 +57,6 @@ namespace BovineLabs.Combat.Ambush
         /// <summary>
         /// Check if the agent has reached the hide position (within arrival threshold).
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool HasReachedHidePosition(float2 agentPos, float2 hidePos, float arrivalThreshold)
         {
@@ -70,8 +64,6 @@ namespace BovineLabs.Combat.Ambush
             return distSq <= arrivalThreshold * arrivalThreshold;
         }
 
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static float2 SeekForce(float2 from, float2 to, float speed)
         {

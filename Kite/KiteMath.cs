@@ -21,8 +21,6 @@ namespace BovineLabs.Combat.Kite
         /// <param name="arcAngle">Angular offset from the current bearing (radians).</param>
         /// <param name="kiteDirection">Circle direction: +1 CCW, -1 CW.</param>
         /// <returns>The kite position on the circle around the target.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 ComputeKitePosition(float2 agentPos, float2 targetPos, float optimalRange, float arcAngle, float kiteDirection)
         {
@@ -58,8 +56,6 @@ namespace BovineLabs.Combat.Kite
         /// <param name="optimalRange">Desired distance from target.</param>
         /// <param name="tolerance">Distance tolerance before engaging kite behavior.</param>
         /// <returns>True if the agent is close enough that kiting is warranted.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool ShouldKite(float2 agentPos, float2 targetPos, float optimalRange, float tolerance)
         {

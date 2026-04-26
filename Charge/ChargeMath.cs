@@ -17,8 +17,6 @@ namespace BovineLabs.Combat.Charge
         /// <param name="currentPos">Agent's current XZ position.</param>
         /// <param name="targetPos">Target XZ position to charge toward.</param>
         /// <returns>Normalized direction toward target, or zero if at target.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 ComputeChargeDirection(float2 currentPos, float2 targetPos)
         {
@@ -37,8 +35,6 @@ namespace BovineLabs.Combat.Charge
         /// <param name="targetPos">Target XZ position.</param>
         /// <param name="minDistance">Minimum distance required for a valid charge.</param>
         /// <returns>True if the target is far enough to charge toward.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsChargeValid(float2 currentPos, float2 targetPos, float minDistance)
         {
@@ -50,8 +46,6 @@ namespace BovineLabs.Combat.Charge
         /// Compute the full charge steering force: direction * chargeSpeed.
         /// The chargeSpeed = baseMaxSpeed * chargeSpeedMultiplier.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 ComputeChargeForce(
             float2 currentPos,

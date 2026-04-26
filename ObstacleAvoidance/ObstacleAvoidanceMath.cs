@@ -20,8 +20,6 @@ namespace BovineLabs.Combat.ObstacleAvoidance
         /// <param name="wallNormal">Outward-facing normal of the wall.</param>
         /// <param name="slideStrength">How much of the sliding force to apply (0..1).</param>
         /// <returns>Velocity adjusted to slide along the wall.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 WallSliding(
             float2 currentPos,
@@ -52,8 +50,6 @@ namespace BovineLabs.Combat.ObstacleAvoidance
         /// <param name="rayLength">Length of each ray.</param>
         /// <param name="rayAngles">Output: pre-allocated array of ray angles (radians).</param>
         /// <returns>NativeArray of normalized ray directions.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         public static NativeArray<float2> RaycastFan(
             float2 origin,
             float facingAngle,
@@ -99,8 +95,6 @@ namespace BovineLabs.Combat.ObstacleAvoidance
         /// <param name="rayDirections">Direction of each ray (normalized * length).</param>
         /// <param name="slideStrength">Wall sliding strength parameter.</param>
         /// <returns>Net avoidance force to add to steering.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         public static float2 ComputeObstacleForce(
             float2 currentPos,
             float2 desiredVelocity,

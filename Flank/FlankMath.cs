@@ -21,8 +21,6 @@ namespace BovineLabs.Combat.Flank
         /// <param name="flankAngleOffset">Angle offset from target's facing direction.</param>
         /// <param name="flankDistance">Distance from target to flank position.</param>
         /// <returns>The desired XZ position for the flanking agent.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 ComputeFlankPosition(
             float2 targetPos,
@@ -49,8 +47,6 @@ namespace BovineLabs.Combat.Flank
         /// <param name="flankTargetPos">The computed flank position to seek toward.</param>
         /// <param name="maxSpeed">Agent's maximum movement speed.</param>
         /// <returns>Steering force toward the flank position.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 ComputeFlankDirection(
             float2 currentPos,

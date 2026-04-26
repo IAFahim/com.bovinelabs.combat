@@ -20,8 +20,6 @@ namespace BovineLabs.Combat.RoomTraversal
         /// <param name="roomBounds">Buffer of all room bounds.</param>
         /// <param name="count">Number of valid entries in roomBounds.</param>
         /// <returns>RoomId containing the position, or -1 if none.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int FindRoomContaining(float2 pos, NativeArray<RoomBounds> roomBounds, int count)
         {
@@ -48,8 +46,6 @@ namespace BovineLabs.Combat.RoomTraversal
         /// <param name="connections">Buffer of all room connections.</param>
         /// <param name="count">Number of valid entries in connections.</param>
         /// <returns>Door position between the two rooms, or zero if no direct connection.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 FindDoorToRoom(int fromRoom, int toRoom, NativeArray<RoomConnection> connections, int count)
         {
@@ -75,8 +71,6 @@ namespace BovineLabs.Combat.RoomTraversal
         /// <param name="count">Number of valid entries in connections.</param>
         /// <param name="allocator">Allocator for the returned NativeList.</param>
         /// <returns>NativeList of room IDs from start to end. Empty if no path found.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         public static NativeList<int> PlanRoomRoute(int fromRoom, int toRoom, NativeArray<RoomConnection> connections, int count, Allocator allocator)
         {
             var route = new NativeList<int>(allocator);
@@ -186,8 +180,6 @@ namespace BovineLabs.Combat.RoomTraversal
         /// <summary>
         /// Check if the agent has reached a door position (within arrival threshold).
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool HasReachedDoor(float2 agentPos, float2 doorPos, float arrivalThreshold)
         {

@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Unity.Mathematics;
 
 namespace BovineLabs.Combat.Core
@@ -13,8 +14,7 @@ namespace BovineLabs.Combat.Core
         /// Compute seek steering force: desired velocity toward target.
         /// Returns a force vector whose magnitude is capped at maxSpeed.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 Seek(float2 currentPos, float2 targetPos, float maxSpeed)
         {
             var desired = targetPos - currentPos;
@@ -28,8 +28,7 @@ namespace BovineLabs.Combat.Core
         /// <summary>
         /// Compute flee steering force: desired velocity away from threat.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 Flee(float2 currentPos, float2 threatPos, float maxSpeed)
         {
             return Seek(threatPos, currentPos, maxSpeed);
@@ -40,8 +39,7 @@ namespace BovineLabs.Combat.Core
         /// slowRadius: distance at which deceleration begins.
         /// arrivalThreshold: distance at which agent stops.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 Arrive(float2 currentPos, float2 targetPos, float maxSpeed, float slowRadius, float arrivalThreshold)
         {
             var offset = targetPos - currentPos;
@@ -62,8 +60,7 @@ namespace BovineLabs.Combat.Core
         /// maxPrediction: maximum look-ahead time (seconds).
         /// targetVelocity: current velocity of the target.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 Pursue(float2 currentPos, float2 currentVel, float2 targetPos, float2 targetVel, float maxSpeed, float maxPrediction)
         {
             var toTarget = targetPos - currentPos;
@@ -83,8 +80,7 @@ namespace BovineLabs.Combat.Core
         /// <summary>
         /// Compute evade steering force: flee from target's predicted future position.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 Evade(float2 currentPos, float2 currentVel, float2 threatPos, float2 threatVel, float maxSpeed, float maxPrediction)
         {
             var futureThreat = threatPos + threatVel * maxPrediction;
@@ -93,14 +89,8 @@ namespace BovineLabs.Combat.Core
 
         /// <summary>
         /// Compute wander steering: a random displacement on a wander circle.
-        /// wanderAngle: current wander direction (radians).
-        /// wanderRadius: radius of the wander circle.
-        /// wanderDistance: distance ahead of the agent to place the circle center.
-        /// jitter: random displacement magnitude per frame.
-        /// Returns: new wander angle for next frame.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 Wander(float facingAngle, float wanderRadius, float wanderDistance, float jitter, ref Unity.Mathematics.Random rng, out float newWanderAngle)
         {
             var circleCenter = new float2(
@@ -124,8 +114,7 @@ namespace BovineLabs.Combat.Core
         /// <summary>
         /// Limit a vector's magnitude to maxMagnitude.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 LimitMagnitude(float2 v, float maxMagnitude)
         {
             var sq = math.lengthsq(v);
@@ -138,10 +127,9 @@ namespace BovineLabs.Combat.Core
 
         /// <summary>
         /// Truncate a steering force by subtracting current velocity and limiting by max force.
-        /// steering = desired - velocity. This is the classic Reynolds steering formula.
+        /// steering = desired - velocity. Classic Reynolds steering formula.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 Steer(float2 desiredVelocity, float2 currentVelocity, float maxForce)
         {
             var steer = desiredVelocity - currentVelocity;
@@ -151,8 +139,7 @@ namespace BovineLabs.Combat.Core
         /// <summary>
         /// Get facing angle from a direction vector on XZ plane.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float FacingAngleFromDirection(float2 direction)
         {
             return math.atan2(direction.x, direction.y);
@@ -161,8 +148,7 @@ namespace BovineLabs.Combat.Core
         /// <summary>
         /// Get forward direction from facing angle.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 DirectionFromFacingAngle(float angle)
         {
             return new float2(math.sin(angle), math.cos(angle));
@@ -171,8 +157,7 @@ namespace BovineLabs.Combat.Core
         /// <summary>
         /// Shortest angular difference from 'from' to 'to' in [-PI, PI].
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float DeltaAngle(float from, float to)
         {
             var delta = to - from;
@@ -184,8 +169,7 @@ namespace BovineLabs.Combat.Core
         /// <summary>
         /// Move angle toward target by maxStep. Clamps to exact target if within step.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float MoveAngleToward(float current, float target, float maxStep)
         {
             var delta = DeltaAngle(current, target);

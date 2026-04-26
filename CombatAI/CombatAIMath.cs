@@ -19,8 +19,6 @@ namespace BovineLabs.Combat.CombatAI
         /// <param name="enemySpeed">Enemy's movement speed.</param>
         /// <param name="agentHealth">Agent's current health (low health amplifies threat).</param>
         /// <returns>Threat score (higher = more dangerous).</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float ComputeThreatScore(float enemyHealth, float distance, float enemySpeed, float agentHealth)
         {
@@ -47,8 +45,6 @@ namespace BovineLabs.Combat.CombatAI
         /// <param name="enemyDistance">Distance to the enemy.</param>
         /// <param name="engageRange">Maximum engagement range.</param>
         /// <returns>True if the agent should engage.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool ShouldEngage(float agentHealth, float enemyDistance, float engageRange)
         {
@@ -62,8 +58,6 @@ namespace BovineLabs.Combat.CombatAI
         /// <param name="maxHealth">Agent's maximum health.</param>
         /// <param name="fleeThreshold">Health ratio (0..1) below which agent flees.</param>
         /// <returns>True if the agent should flee.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool ShouldFlee(float agentHealth, float maxHealth, float fleeThreshold)
         {
@@ -80,8 +74,6 @@ namespace BovineLabs.Combat.CombatAI
         /// <param name="enemyDistance">Distance to the enemy.</param>
         /// <param name="disengageRange">Distance at which to give up pursuit.</param>
         /// <returns>True if the agent should disengage.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool ShouldDisengage(float enemyDistance, float disengageRange)
         {

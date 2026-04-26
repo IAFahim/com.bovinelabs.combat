@@ -19,8 +19,6 @@ namespace BovineLabs.Combat.TargetSelection
         /// <param name="maxRange">Maximum selection range.</param>
         /// <param name="count">Number of valid entries in candidatePositions.</param>
         /// <returns>Index of nearest candidate, or -1 if none within range.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int SelectNearest(float2 agentPos, NativeArray<float2> candidatePositions, float maxRange, int count)
         {
@@ -49,8 +47,6 @@ namespace BovineLabs.Combat.TargetSelection
         /// <param name="maxRange">Maximum selection range.</param>
         /// <param name="count">Number of valid entries.</param>
         /// <returns>Index of weakest candidate, or -1 if none within range.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int SelectWeakest(float2 agentPos, NativeArray<float2> candidatePositions, NativeArray<float> healths, float maxRange, int count)
         {
@@ -80,8 +76,6 @@ namespace BovineLabs.Combat.TargetSelection
         /// <param name="maxRange">Maximum selection range.</param>
         /// <param name="count">Number of valid entries.</param>
         /// <returns>Index of most threatening candidate, or -1 if none within range.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int SelectMostThreatening(float2 agentPos, NativeArray<float2> candidatePositions, NativeArray<float> threatScores, float maxRange, int count)
         {
@@ -110,8 +104,6 @@ namespace BovineLabs.Combat.TargetSelection
         /// <param name="targetPos">Target's XZ position.</param>
         /// <param name="maxAngle">Half-angle of the cone in radians. PI = no restriction.</param>
         /// <returns>True if target is within the cone.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsInCone(float2 agentPos, float2 agentForward, float2 targetPos, float maxAngle)
         {

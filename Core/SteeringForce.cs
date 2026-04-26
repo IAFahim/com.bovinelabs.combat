@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+using Unity.Entities;
 using Unity.Mathematics;
 
 namespace BovineLabs.Combat.Core

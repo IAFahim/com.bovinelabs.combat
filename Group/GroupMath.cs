@@ -15,8 +15,6 @@ namespace BovineLabs.Combat.Group
         /// Cohesion: compute a steering force toward the centroid of neighbor positions.
         /// Returns a normalized direction vector toward the group center.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 Cohesion(float2 agentPos, NativeList<float2> neighborPositions)
         {
@@ -43,8 +41,6 @@ namespace BovineLabs.Combat.Group
         /// Force strength is inversely proportional to distance.
         /// Uses agent and neighbor radii to determine overlap threshold.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 Separation(
             float2 agentPos,
@@ -77,8 +73,6 @@ namespace BovineLabs.Combat.Group
         /// Alignment: compute a steering force that matches the average velocity of neighbors.
         /// Returns a normalized direction representing the velocity correction needed.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 Alignment(float2 agentVel, NativeList<float2> neighborVelocities)
         {
@@ -101,8 +95,6 @@ namespace BovineLabs.Combat.Group
         /// Combine all three group forces with their weights into a single steering output.
         /// Each force is scaled to maxSpeed, then weighted and summed.
         /// </summary>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 ComputeGroupForce(
             float2 agentPos,

@@ -20,8 +20,6 @@ namespace BovineLabs.Combat.Follow
         /// <param name="distance">Distance behind the leader.</param>
         /// <param name="offset">Lateral offset from the behind position.</param>
         /// <returns>Target world position on the XZ plane.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 ComputeFollowPosition(
             float2 leaderPos,
@@ -41,8 +39,6 @@ namespace BovineLabs.Combat.Follow
         /// <param name="aheadEntityForward">Forward direction of the entity ahead.</param>
         /// <param name="distance">Distance to maintain behind the ahead entity.</param>
         /// <returns>Target world position on the XZ plane.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 ComputeChainPosition(
             float2 aheadEntityPos,

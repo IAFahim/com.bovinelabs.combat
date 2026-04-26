@@ -20,8 +20,6 @@ namespace BovineLabs.Combat.Surround
         /// <param name="slotIndex">This agent's slot index (0-based).</param>
         /// <param name="totalSlots">Total number of slots in the surround.</param>
         /// <returns>World position for this slot.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float2 ComputeSurroundPosition(float2 center, float radius, int slotIndex, int totalSlots)
         {
@@ -45,8 +43,6 @@ namespace BovineLabs.Combat.Surround
         /// <param name="radius">Radius of the surround circle.</param>
         /// <param name="totalSlots">Total number of slots in the surround.</param>
         /// <returns>The index of the nearest slot.</returns>
-        [Il2CppSetOption(Option.NullChecks, false)]
-        [Il2CppSetOption(Option.ArrayBoundsChecks, false)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ComputeSurroundSlot(float2 agentPos, float2 center, float radius, int totalSlots)
         {
