@@ -1,6 +1,6 @@
 {
-    "name": "BovineLabs.Combat.Core.Tests",
-    "rootNamespace": "BovineLabs.Combat.Core.Tests",
+    "name": "BovineLabs.Combat.CombatAI.Tests",
+    "rootNamespace": "BovineLabs.Combat.CombatAI.Tests",
     "references": [
         "Unity.Burst",
         "Unity.Collections",
@@ -8,7 +8,7 @@
         "Unity.Mathematics",
         "Unity.Transforms",
         "BovineLabs.Combat.Core",
-        "BovineLabs.Testing",
+        "BovineLabs.Combat.CombatAI",
         "nunit.framework.dll"
     ],
     "includePlatforms": [
