@@ -1,0 +1,33 @@
+{
+  "name": "com.bovinelabs.combat",
+  "displayName": "BovineLabs Combat Movement",
+  "version": "0.1.0",
+  "unity": "6000.0",
+  "description": "S-tier combat movement system for Unity DOTS/ECS RPG games. Algorithm-centric, designer-friendly, fully modular. 24 independent behavior modules for steering, formation, avoidance, flanking, and more.",
+  "keywords": [
+    "dots",
+    "ecs",
+    "combat",
+    "movement",
+    "steering",
+    "formation",
+    "ai",
+    "rpg",
+    "navigation",
+    "recast"
+  ],
+  "author": {
+    "name": "BovineLabs",
+    "url": "https://github.com/IAFahim/com.bovinelabs.combat"
+  },
+  "dependencies": {
+    "com.bovinelabs.core": "1.6.1",
+    "com.bovinelabs.recast": "1.0.6",
+    "com.unity.entities": "1.0.16",
+    "com.unity.burst": "1.8.18",
+    "com.unity.collections": "2.5.1",
+    "com.unity.mathematics": "1.2.6",
+    "com.unity.transforms": "1.0.16"
+  },
+  "type": "library"
+}
