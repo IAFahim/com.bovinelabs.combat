@@ -1,0 +1,22 @@
+{
+    "name": "BovineLabs.Combat.Navigation",
+    "rootNamespace": "BovineLabs.Combat.Navigation",
+    "references": [
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.Entities",
+        "Unity.Mathematics",
+        "Unity.Transforms",
+        "BovineLabs.Combat.Core",
+        "BovineLabs.Recast"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

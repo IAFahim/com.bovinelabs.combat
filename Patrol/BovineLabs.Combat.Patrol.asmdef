@@ -1,0 +1,22 @@
+{
+    "name": "BovineLabs.Combat.Patrol",
+    "rootNamespace": "BovineLabs.Combat.Patrol",
+    "references": [
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.Entities",
+        "Unity.Mathematics",
+        "Unity.Transforms",
+        "BovineLabs.Combat.Core",
+        "BovineLabs.Combat.Steering"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

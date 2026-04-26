@@ -1,0 +1,29 @@
+{
+    "name": "BovineLabs.Combat.Kite.Tests",
+    "rootNamespace": "BovineLabs.Combat.Kite.Tests",
+    "references": [
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.Entities",
+        "Unity.Mathematics",
+        "Unity.Transforms",
+        "BovineLabs.Combat.Core",
+        "BovineLabs.Combat.Kite",
+        "nunit.framework.dll"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
