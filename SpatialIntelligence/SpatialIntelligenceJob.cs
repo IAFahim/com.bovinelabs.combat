@@ -13,8 +13,8 @@ namespace BovineLabs.Combat.SpatialIntelligence
     /// populates the SpatialNeighborData buffer, and writes SpatialThreatAssessment.
     /// Uses the BovineLabs SpatialMap broadphase to avoid O(n^2) brute force.
     ///
-    /// entityInQueryIndex maps directly into the parallel arrays (Entities, Positions,
-    /// TeamIds, MovementStats) since they were gathered from the same query.
+    /// Self-lookup is done by Entity comparison during spatial iteration rather than
+    /// by index, since IJobEntity doesn't expose entityInQueryIndex in this Entities version.
     ///
     /// MUST be in its own file - Unity's IJobEntity source generator requires
     /// the partial struct to be the only top-level type in the file.
@@ -30,7 +30,6 @@ namespace BovineLabs.Combat.SpatialIntelligence
 
         public void Execute(
             Entity entity,
-            int entityInQueryIndex,
             in LocalTransform transform,
             in TeamId teamId,
             in SpatialNeighborConfig config,
@@ -46,9 +45,6 @@ namespace BovineLabs.Combat.SpatialIntelligence
 
             // Clear the buffer for this frame
             neighborBuffer.Clear();
-
-            // entityInQueryIndex IS our index into the parallel arrays
-            int myIndex = entityInQueryIndex;
 
             // Query the spatial map: iterate all cells overlapping the search radius
             var min = SpatialMapRO.Quantized(agentPos - searchRadius);
@@ -74,12 +70,12 @@ namespace BovineLabs.Combat.SpatialIntelligence
 
                     do
                     {
-                        // Skip self
-                        if (candidateIdx == myIndex)
-                            continue;
-
                         // Bounds check
                         if (candidateIdx < 0 || candidateIdx >= Positions.Length)
+                            continue;
+
+                        // Skip self by entity comparison
+                        if (Entities[candidateIdx] == entity)
                             continue;
 
                         var candidatePos = Positions[candidateIdx].Position.xz;
