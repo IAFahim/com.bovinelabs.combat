@@ -63,5 +63,7 @@ namespace BovineLabs.Combat.Core
         Guard = 20,
         Ambush = 21,
         PathFollow = 22,
+        SpatialNeighbor = 23,
+        GridTactical = 24,
     }
 }

@@ -1,0 +1,22 @@
+{
+    "name": "BovineLabs.Combat.SpatialIntelligence",
+    "rootNamespace": "BovineLabs.Combat.SpatialIntelligence",
+    "references": [
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.Entities",
+        "Unity.Mathematics",
+        "Unity.Transforms",
+        "BovineLabs.Combat.Core",
+        "BovineLabs.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
