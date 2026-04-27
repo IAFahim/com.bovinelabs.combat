@@ -14,6 +14,7 @@ namespace BovineLabs.Combat.GridIntelligence
     ///
     /// Also produces a steering force toward cover (away from threat cells) when
     /// dangerous cells are detected, enabling agents to autonomously seek safer ground.
+    /// When no threats are present, resets SteeringForce to zero to avoid stale values.
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(CombatSteeringGroup))]
@@ -41,8 +42,6 @@ namespace BovineLabs.Combat.GridIntelligence
                 var gridRadius = config.ValueRO.GridRadius;
                 var resolution = config.ValueRO.GridResolution;
                 var cellSize = new float2(gridRadius * 2f / resolution);
-                var agentPos = transform.ValueRO.Position.xz;
-                var gridOrigin = agentPos - gridRadius;
 
                 // Convert neighbor buffer to NativeArray for the math function
                 var neighbors = neighborBuffer.AsNativeArray();
@@ -50,7 +49,6 @@ namespace BovineLabs.Combat.GridIntelligence
                 GridIntelligenceMath.ComputeGridAnalysis(
                     resolution,
                     cellSize,
-                    gridOrigin,
                     neighbors,
                     teamId.ValueRO.Value,
                     config.ValueRO.ThreatThreshold,
@@ -70,6 +68,11 @@ namespace BovineLabs.Combat.GridIntelligence
                         steering.ValueRW.Weight = config.ValueRO.CoverWeight;
                         steering.ValueRW.BehaviorType = SteeringBehaviorType.GridTactical;
                     }
+                }
+                else
+                {
+                    // No threats - clear our steering output to prevent stale values
+                    steering.ValueRW = SteeringForce.Zero;
                 }
             }
         }

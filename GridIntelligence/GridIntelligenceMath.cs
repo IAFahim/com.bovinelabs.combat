@@ -59,10 +59,12 @@ namespace BovineLabs.Combat.GridIntelligence
         /// Compute full grid-based tactical analysis from the neighbor buffer.
         /// Divides the agent's vicinity into a grid, counts enemies per cell,
         /// and computes safest/danger directions and threat metrics.
+        ///
+        /// The grid is centered on the agent. Each neighbor's cell is determined
+        /// by its Direction and Distance from the agent (relative to grid center).
         /// </summary>
         /// <param name="resolution">Cells per side (e.g., 8 = 8x8 grid).</param>
         /// <param name="cellSize">World-space size of each cell.</param>
-        /// <param name="gridOrigin">Bottom-left corner of the grid in world space.</param>
         /// <param name="neighbors">Neighbor data buffer (from SpatialIntelligence).</param>
         /// <param name="myTeam">Agent's team ID.</param>
         /// <param name="threatThreshold">Density above which a cell is 'dangerous'.</param>
@@ -70,7 +72,6 @@ namespace BovineLabs.Combat.GridIntelligence
         public static void ComputeGridAnalysis(
             int resolution,
             float2 cellSize,
-            float2 gridOrigin,
             NativeArray<SpatialNeighborData> neighbors,
             int myTeam,
             float threatThreshold,
@@ -81,17 +82,17 @@ namespace BovineLabs.Combat.GridIntelligence
             float totalDensity = 0f;
             int dangerousCells = 0;
             int2 maxCell = int2.zero;
-            int2 minCell = new int2(resolution / 2, resolution / 2); // start at center
+            int2 minCell = new int2(resolution / 2, resolution / 2);
             float minDensity = float.MaxValue;
 
-            // Count enemies per cell using a flat array approach
-            // We iterate neighbors and accumulate per cell
             var cellEnemyCounts = new NativeArray<int>(totalCells, Allocator.Temp);
-            var cellNeighborCounts = new NativeArray<int>(totalCells, Allocator.Temp);
 
             try
             {
-                var gridSize = new int2(resolution, resolution);
+                // The grid is centered on the agent.
+                // centerOffset = half grid = cellSize * resolution * 0.5f
+                // neighborRelative = Direction * Distance + centerOffset
+                var centerOffset = cellSize * resolution * 0.5f;
 
                 for (int i = 0; i < neighbors.Length; i++)
                 {
@@ -99,38 +100,10 @@ namespace BovineLabs.Combat.GridIntelligence
                     bool isEnemy = myTeam != 0 && neighbor.TeamId != 0 && myTeam != neighbor.TeamId;
                     if (!isEnemy) continue;
 
-                    // Reconstruct neighbor world position
-                    var neighborPos = new float2(0f); // We don't have absolute position, approximate from grid
-                    // Use direction + distance relative to agent (agent is at grid center)
-                    // The gridOrigin is agent position - gridRadius, so agent is at grid center
-                    // neighborPos relative to gridOrigin:
-                    // agent is at gridOrigin + gridRadius
-                    // neighbor is at agentPos + direction * distance
-                    // So relative to gridOrigin: gridOrigin + gridRadius + dir*dist - gridOrigin = gridRadius + dir*dist
-                    // Actually we need to reconstruct from Direction and Distance
-                    // gridOrigin is agentPos - gridRadius (float)
-                    float gridRadius = gridOrigin.x >= 0 ? gridOrigin.x : -gridOrigin.x; // not used, we just need cell
-                    // Simpler: gridOrigin + cellSize*gridSize/2 = agent pos
+                    // Reconstruct neighbor position relative to grid origin.
+                    // Agent is at grid center = gridOrigin + gridRadius.
                     // neighbor relative to agent = Direction * Distance
-                    // neighbor world pos = agentPos + Direction * Distance
-                    // relative to gridOrigin = Direction * Distance + (gridOrigin + gridRadius) - gridOrigin
-                    //                        = Direction * Distance + gridRadius
-                    // Wait, gridOrigin is already calculated by the system. We just need:
-                    // neighborRelative = Direction * Distance
-                    // neighborInGrid = neighborRelative + gridRadius (shift so agent=gridRadius)
-                    // cell = floor(neighborInGrid / cellSize)
-
-                    // For this pure math function, compute from direction + distance
-                    // relative to grid origin: the neighbor position is at (Direction * Distance)
-                    // offset from agent. Agent is at center of grid = gridOrigin + gridRadius
-                    // So neighbor world pos = (gridOrigin + some_center) + Direction * Distance
-                    // relative to gridOrigin = some_center + Direction * Distance
-                    // where some_center = cellSize * resolution * 0.5f as float2
-
-                    // Actually, let's simplify. The caller passes gridOrigin so the agent
-                    // is at the center. neighbor offset from agent = Direction * Distance.
-                    // So neighbor relative to gridOrigin = Direction * Distance + center offset
-                    var centerOffset = cellSize * resolution * 0.5f;
+                    // neighbor relative to gridOrigin = Direction * Distance + centerOffset
                     var neighborRelative = neighbor.Direction * neighbor.Distance + centerOffset;
                     var cell = new int2(
                         (int)math.floor(neighborRelative.x / cellSize.x),
@@ -186,7 +159,6 @@ namespace BovineLabs.Combat.GridIntelligence
             finally
             {
                 cellEnemyCounts.Dispose();
-                cellNeighborCounts.Dispose();
             }
         }
     }

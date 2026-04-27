@@ -75,7 +75,6 @@ namespace BovineLabs.Combat.GridIntelligence.Tests
 
             Assert.That(math.length(flank), Is.EqualTo(1f).Within(Epsilon));
             Assert.That(math.dot(flank, new float2(0f, 1f)), Is.EqualTo(0f).Within(Epsilon));
-            // Should be (1, 0)
             Assert.That(flank.x, Is.EqualTo(1f).Within(Epsilon));
             Assert.That(flank.y, Is.EqualTo(0f).Within(Epsilon));
         }
@@ -112,10 +111,9 @@ namespace BovineLabs.Combat.GridIntelligence.Tests
             {
                 int resolution = 8;
                 var cellSize = new float2(5f, 5f);
-                var gridOrigin = new float2(-20f, -20f);
 
                 GridIntelligenceMath.ComputeGridAnalysis(
-                    resolution, cellSize, gridOrigin,
+                    resolution, cellSize,
                     neighbors, 1, 0.5f, out var result);
 
                 Assert.That(result.MaxThreatDensity, Is.EqualTo(0f));
@@ -153,11 +151,10 @@ namespace BovineLabs.Combat.GridIntelligence.Tests
 
                 int resolution = 8;
                 var cellSize = new float2(5f, 5f);
-                var gridOrigin = new float2(-20f, -20f);
 
                 GridIntelligenceMath.ComputeGridAnalysis(
-                    resolution, cellSize, gridOrigin,
-                    neighbors, 1, 0.5f, out var result);
+                    resolution, cellSize,
+                    neighbors, 1, 0.01f, out var result);
 
                 // Danger direction should point toward enemies (positive X component)
                 Assert.That(result.DangerDirection.x, Is.GreaterThan(0f));
@@ -184,10 +181,9 @@ namespace BovineLabs.Combat.GridIntelligence.Tests
 
                 int resolution = 4;
                 var cellSize = new float2(10f, 10f);
-                var gridOrigin = new float2(-20f, -20f);
 
                 GridIntelligenceMath.ComputeGridAnalysis(
-                    resolution, cellSize, gridOrigin,
+                    resolution, cellSize,
                     neighbors, 1, 0.0f, out var result);
 
                 // Flanking should be perpendicular to danger direction

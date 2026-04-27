@@ -26,20 +26,19 @@ namespace BovineLabs.Combat.SpatialIntelligence
     public partial struct SpatialIntelligenceSystem : ISystem
     {
         private SpatialMap<SpatialPosition> spatialMap;
-        private PositionBuilder positionBuilder;
         private EntityQuery spatialQuery;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            // Single query for all spatial intelligence agents.
+            // Includes all components the job reads/writes.
             spatialQuery = SystemAPI.QueryBuilder()
-                .WithAll<LocalTransform, MovementStats, TeamId, SpatialNeighborConfig>()
+                .WithAll<LocalTransform, MovementStats, TeamId, SpatialNeighborConfig,
+                         SpatialThreatAssessment>()
+                .WithAllRW<SpatialNeighborData>()
                 .Build();
 
-            positionBuilder = new PositionBuilder(ref state, spatialQuery);
-
-            // Spatial map: cell size 16, world size 4096x4096 (-2048 to 2048)
-            // Quantized grid = 256x256 cells, ~1MB memory
             spatialMap = new SpatialMap<SpatialPosition>(quantizeStep: 16, size: 4096);
 
             state.RequireForUpdate(spatialQuery);
@@ -48,37 +47,55 @@ namespace BovineLabs.Combat.SpatialIntelligence
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            // Step 1: Gather all agent positions via PositionBuilder and build spatial map
-            state.Dependency = positionBuilder.Gather(ref state, state.Dependency, out var positions);
-            state.Dependency = spatialMap.Build(positions, state.Dependency);
+            var entityCount = spatialQuery.CalculateEntityCount();
+            if (entityCount == 0)
+                return;
 
-            // Step 2: Get entities + metadata for index-to-entity mapping
-            var entities = spatialQuery.ToEntityListAsync(state.WorldUpdateAllocator, state.Dependency, out var entitiesDep);
-            state.Dependency = entitiesDep;
+            // Allocate temp arrays for gather
+            var positions = new NativeArray<SpatialPosition>(entityCount, Allocator.TempJob);
+            var entities = new NativeArray<Entity>(entityCount, Allocator.TempJob);
+            var teamIds = new NativeArray<TeamId>(entityCount, Allocator.TempJob);
+            var movementStats = new NativeArray<MovementStats>(entityCount, Allocator.TempJob);
 
-            var teamIds = spatialQuery.ToComponentDataListAsync<TeamId>(state.WorldUpdateAllocator, state.Dependency, out var teamIdsDep);
-            state.Dependency = teamIdsDep;
+            // Get base entity indices for correct multi-chunk writes
+            var baseEntityIndices = spatialQuery.CalculateBaseEntityIndexArrayAsync(
+                state.WorldUpdateAllocator, state.Dependency, out var baseIndexDep);
+            state.Dependency = baseIndexDep;
 
-            var stats = spatialQuery.ToComponentDataListAsync<MovementStats>(state.WorldUpdateAllocator, state.Dependency, out var statsDep);
-            state.Dependency = statsDep;
+            // Step 1: Gather positions and metadata manually
+            var gatherJob = new GatherJob
+            {
+                LocalTransformHandle = state.GetComponentTypeHandle<LocalTransform>(true),
+                TeamIdHandle = state.GetComponentTypeHandle<TeamId>(true),
+                MovementStatsHandle = state.GetComponentTypeHandle<MovementStats>(true),
+                EntityTypeHandle = state.GetEntityTypeHandle(),
+                FirstEntityIndices = baseEntityIndices,
+                Positions = positions,
+                Entities = entities,
+                TeamIds = teamIds,
+                MovementStats = movementStats,
+            }.ScheduleParallel(spatialQuery, state.Dependency);
 
-            // Step 3: Get read-only spatial map for queries inside the job
+            // Step 2: Build spatial map from gathered positions
+            state.Dependency = spatialMap.Build(positions, gatherJob);
+
+            // Step 3: Schedule the main neighbor-population job
             var spatialMapRO = spatialMap.AsReadOnly();
 
-            // Step 4: Schedule the main neighbor-population job
             state.Dependency = new SpatialIntelligenceJob
             {
-                Entities = entities.AsDeferredJobArray(),
+                Entities = entities,
                 Positions = positions,
-                TeamIds = teamIds.AsDeferredJobArray(),
-                MovementStats = stats.AsDeferredJobArray(),
+                TeamIds = teamIds,
+                MovementStats = movementStats,
                 SpatialMapRO = spatialMapRO,
             }.ScheduleParallel(spatialQuery, state.Dependency);
 
-            // Dispose temp collections after jobs complete
+            // Dispose all temp collections after jobs complete
+            positions.Dispose(state.Dependency);
             entities.Dispose(state.Dependency);
             teamIds.Dispose(state.Dependency);
-            stats.Dispose(state.Dependency);
+            movementStats.Dispose(state.Dependency);
         }
 
         [BurstCompile]
@@ -87,12 +104,56 @@ namespace BovineLabs.Combat.SpatialIntelligence
             if (spatialMap.IsCreated)
                 spatialMap.Dispose();
         }
+
+        /// <summary>
+        /// Gathers LocalTransform positions + metadata into parallel arrays.
+        /// Avoids PositionBuilder which asserts against enableable components.
+        /// Uses FirstEntityIndices for correct multi-chunk index computation.
+        /// </summary>
+        [BurstCompile]
+        private struct GatherJob : IJobChunk
+        {
+            [ReadOnly] public ComponentTypeHandle<LocalTransform> LocalTransformHandle;
+            [ReadOnly] public ComponentTypeHandle<TeamId> TeamIdHandle;
+            [ReadOnly] public ComponentTypeHandle<MovementStats> MovementStatsHandle;
+            [ReadOnly] public EntityTypeHandle EntityTypeHandle;
+            [ReadOnly] public NativeArray<int> FirstEntityIndices;
+
+            [NativeDisableParallelForRestriction]
+            public NativeArray<SpatialPosition> Positions;
+            [NativeDisableParallelForRestriction]
+            public NativeArray<Entity> Entities;
+            [NativeDisableParallelForRestriction]
+            public NativeArray<TeamId> TeamIds;
+            [NativeDisableParallelForRestriction]
+            public NativeArray<MovementStats> MovementStats;
+
+            public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in Unity.Burst.Intrinsics.v128 chunkEnabledMask)
+            {
+                var transforms = chunk.GetNativeArray(ref LocalTransformHandle);
+                var teams = chunk.GetNativeArray(ref TeamIdHandle);
+                var stats = chunk.GetNativeArray(ref MovementStatsHandle);
+                var chunkEntities = chunk.GetNativeArray(EntityTypeHandle);
+                var baseIndex = FirstEntityIndices[unfilteredChunkIndex];
+
+                for (int i = 0; i < chunk.Count; i++)
+                {
+                    Positions[baseIndex + i] = new SpatialPosition { Position = transforms[i].Position };
+                    Entities[baseIndex + i] = chunkEntities[i];
+                    TeamIds[baseIndex + i] = teams[i];
+                    MovementStats[baseIndex + i] = stats[i];
+                }
+            }
+        }
     }
 
     /// <summary>
     /// Burst-compiled IJobEntity that queries the spatial map for each agent,
     /// populates the SpatialNeighborData buffer, and writes SpatialThreatAssessment.
     /// Uses the BovineLabs SpatialMap broadphase to avoid O(n^2) brute force.
+    ///
+    /// entityInQueryIndex maps directly into the parallel arrays (Entities, Positions,
+    /// TeamIds, MovementStats) since they were gathered from the same query.
     /// </summary>
     [BurstCompile]
     public partial struct SpatialIntelligenceJob : IJobEntity
@@ -105,6 +166,7 @@ namespace BovineLabs.Combat.SpatialIntelligence
 
         public void Execute(
             Entity entity,
+            int entityInQueryIndex,
             in LocalTransform transform,
             in TeamId teamId,
             in SpatialNeighborConfig config,
@@ -121,16 +183,8 @@ namespace BovineLabs.Combat.SpatialIntelligence
             // Clear the buffer for this frame
             neighborBuffer.Clear();
 
-            // Find self index in the spatial map arrays for skip-self logic
-            int myIndex = -1;
-            for (int i = 0; i < Entities.Length; i++)
-            {
-                if (Entities[i] == entity)
-                {
-                    myIndex = i;
-                    break;
-                }
-            }
+            // entityInQueryIndex IS our index into the parallel arrays
+            int myIndex = entityInQueryIndex;
 
             // Query the spatial map: iterate all cells overlapping the search radius
             var min = SpatialMapRO.Quantized(agentPos - searchRadius);
@@ -143,6 +197,7 @@ namespace BovineLabs.Combat.SpatialIntelligence
             float nearestDistSq = float.MaxValue;
             float2 nearestDir = float2.zero;
             float2 enemySum = float2.zero;
+            bool bufferFull = false;
 
             for (int j = min.y; j <= max.y; j++)
             {
@@ -174,38 +229,11 @@ namespace BovineLabs.Combat.SpatialIntelligence
                         var direction = diff / distance;
                         var candidateTeam = TeamIds[candidateIdx].Value;
 
-                        // Team filtering (if enabled, only include enemies)
-                        if (filterByTeam)
-                        {
-                            bool isEnemy = myTeam != 0 && candidateTeam != 0 && myTeam != candidateTeam;
-                            if (queryTeamId != 0)
-                                isEnemy = candidateTeam == queryTeamId && candidateTeam != myTeam;
+                        // Always accumulate threat assessment (regardless of buffer filter)
+                        bool isEnemy = myTeam != 0 && candidateTeam != 0 && myTeam != candidateTeam;
+                        bool isAlly = myTeam != 0 && myTeam == candidateTeam;
 
-                            if (!isEnemy)
-                                continue;
-                        }
-
-                        // Check buffer capacity
-                        if (neighborBuffer.Length >= maxNeighbors)
-                            goto done;
-
-                        // Add to neighbor buffer
-                        var stats = MovementStats[candidateIdx];
-                        neighborBuffer.Add(new SpatialNeighborData
-                        {
-                            Entity = Entities[candidateIdx],
-                            Distance = distance,
-                            Direction = direction,
-                            TeamId = candidateTeam,
-                            Velocity = stats.Velocity,
-                            Radius = stats.Radius,
-                        });
-
-                        // Accumulate threat assessment data (always counts all, regardless of filter)
-                        bool isAllyForThreat = myTeam != 0 && myTeam == candidateTeam;
-                        bool isEnemyForThreat = myTeam != 0 && candidateTeam != 0 && myTeam != candidateTeam;
-
-                        if (isEnemyForThreat)
+                        if (isEnemy)
                         {
                             enemyCount++;
                             if (distSq < nearestDistSq)
@@ -215,15 +243,42 @@ namespace BovineLabs.Combat.SpatialIntelligence
                             }
                             enemySum += candidatePos;
                         }
-                        else if (isAllyForThreat)
+                        else if (isAlly)
                         {
                             allyCount++;
+                        }
+
+                        // Team filtering for buffer (separate from threat counting)
+                        if (filterByTeam)
+                        {
+                            bool passesFilter = isEnemy;
+                            if (queryTeamId != 0)
+                                passesFilter = candidateTeam == queryTeamId && candidateTeam != myTeam;
+                            if (!passesFilter)
+                                continue;
+                        }
+
+                        // Add to neighbor buffer (if not full)
+                        if (!bufferFull)
+                        {
+                            var candidateStats = MovementStats[candidateIdx];
+                            neighborBuffer.Add(new SpatialNeighborData
+                            {
+                                Entity = Entities[candidateIdx],
+                                Distance = distance,
+                                Direction = direction,
+                                TeamId = candidateTeam,
+                                Velocity = candidateStats.Velocity,
+                                Radius = candidateStats.Radius,
+                            });
+
+                            if (neighborBuffer.Length >= maxNeighbors)
+                                bufferFull = true;
                         }
                     } while (SpatialMapRO.Map.TryGetNextValue(out candidateIdx, ref it));
                 }
             }
 
-        done:
             // Write threat assessment
             threatAssessment.EnemyCount = enemyCount;
             threatAssessment.AllyCount = allyCount;
