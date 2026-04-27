@@ -39,11 +39,11 @@ namespace BovineLabs.Combat.Core
                 .WithAll<SteeringForce>())
             {
                 var force = steering.ValueRO.Linear;
+                var currentVel = stats.ValueRO.Velocity;
 
                 // If the force is zero, decelerate
                 if (steering.ValueRO.IsZero)
                 {
-                    var currentVel = stats.ValueRO.Velocity;
                     var speed = math.length(currentVel);
 
                     if (speed > 0.01f)
@@ -69,8 +69,6 @@ namespace BovineLabs.Combat.Core
 
                 // Clamp desired velocity to max speed
                 desiredVel = SteeringMath.LimitMagnitude(desiredVel, maxSpeed);
-
-                var currentVel = stats.ValueRO.Velocity;
 
                 // Apply turn speed limit
                 if (maxTurn > 0f && math.length(currentVel) > 0.01f)

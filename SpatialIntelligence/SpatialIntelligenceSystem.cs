@@ -56,10 +56,10 @@ namespace BovineLabs.Combat.SpatialIntelligence
             var entities = spatialQuery.ToEntityListAsync(state.WorldUpdateAllocator, state.Dependency, out var entitiesDep);
             state.Dependency = entitiesDep;
 
-            var teamIds = spatialQuery.ToComponentDataListAsync<TeamId>(ref state, state.Dependency, out var teamIdsDep);
+            var teamIds = spatialQuery.ToComponentDataListAsync<TeamId>(state.WorldUpdateAllocator, state.Dependency, out var teamIdsDep);
             state.Dependency = teamIdsDep;
 
-            var stats = spatialQuery.ToComponentDataListAsync<MovementStats>(ref state, state.Dependency, out var statsDep);
+            var stats = spatialQuery.ToComponentDataListAsync<MovementStats>(state.WorldUpdateAllocator, state.Dependency, out var statsDep);
             state.Dependency = statsDep;
 
             // Step 3: Get read-only spatial map for queries inside the job

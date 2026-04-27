@@ -10,7 +10,7 @@ namespace BovineLabs.Combat.Formation
     /// - Reassigning when an agent dies (gap fill)
     /// - Maintaining formation coherence
     /// </summary>
-    public static unsafe class FormationSlotAssignment
+    public static unsafe class FormationSlotHelper
     {
         /// <summary>
         /// Assign slots to agents by finding each agent's nearest unoccupied slot.

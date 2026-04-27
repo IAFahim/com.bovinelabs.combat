@@ -1,11 +1,13 @@
 using NUnit.Framework;
+using BovineLabs.Combat.Navigation;
+using BovineLabs.Recast;
 using Unity.Mathematics;
 
 namespace BovineLabs.Combat.Navigation.Tests
 {
     [TestFixture]
     [Category("Combat")]
-    public class NavComponentTests
+    public unsafe class NavComponentTests
     {
         const float Epsilon = 0.001f;
 
