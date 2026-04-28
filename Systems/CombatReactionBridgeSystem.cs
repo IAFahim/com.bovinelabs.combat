@@ -4,6 +4,14 @@ using BovineLabs.Combat.Core;
 
 namespace BovineLabs.Combat.Systems
 {
+    /// <summary>
+    /// Bridges the top-scored CombatDesire to the TargetSlot system.
+    /// Finds the highest-score desire that requires a target and writes
+    /// it to the primary TargetSlot (SlotId 0).
+    ///
+    /// Future integration: will trigger Timeline directors based on desire type
+    /// (e.g. Attack -> attack timeline, Flee -> flee timeline).
+    /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(CombatBrainGroup))]
     [UpdateAfter(typeof(CombatDesireScoringSystem))]
@@ -12,10 +20,11 @@ namespace BovineLabs.Combat.Systems
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            foreach (var desires in
+            foreach (var (desires, entity) in
                 SystemAPI.Query<
                     DynamicBuffer<CombatDesire>>()
-                .WithAll<CombatTargets, TargetSlot>())
+                .WithAll<CombatTargets>()
+                .WithEntityAccess())
             {
                 Entity bestTarget = Entity.Null;
                 float bestScore = float.NegativeInfinity;
@@ -32,9 +41,15 @@ namespace BovineLabs.Combat.Systems
                     }
                 }
 
-                // Note: TargetSlot patching will be done via ECB or direct access
-                // in the full Timeline integration. For now, the best target is
-                // identified for downstream systems to consume.
+                // Write to primary slot (SlotId 0)
+                if (bestTarget != Entity.Null)
+                {
+                    var targetSlots = SystemAPI.GetBuffer<TargetSlot>(entity);
+                    if (targetSlots.Length > 0)
+                    {
+                        targetSlots[0] = new TargetSlot { Entity = bestTarget, SlotId = 0 };
+                    }
+                }
             }
         }
     }

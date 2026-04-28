@@ -8,6 +8,11 @@ using BovineLabs.Combat.Core;
 
 namespace BovineLabs.Combat.Systems
 {
+    /// <summary>
+    /// Populates SensedTarget buffers for all CombatAgent entities.
+    /// Uses simple distance-based O(n^2) spatial queries.
+    /// Future: integrate with BovineLabs.Core.SpatialMap for O(1) lookups.
+    /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(CombatSpatialGroup))]
     public partial struct SensorQuerySystem : ISystem
@@ -20,29 +25,17 @@ namespace BovineLabs.Combat.Systems
         }
 
         [BurstCompile]
-        public void OnCreate(ref SystemState state)
-        {
-        }
-
-        [BurstCompile]
-        public void OnDestroy(ref SystemState state)
-        {
-        }
-
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var commandBuffer = new EntityCommandBuffer(Allocator.TempJob);
-
-            // Step 1: Build NativeArray of all CombatAgent entities with LocalTransform + CombatRelationship
+            // Step 1: Build NativeArray of all CombatAgent entities
             var agentQuery = SystemAPI.QueryBuilder()
                 .WithAll<CombatAgent, LocalTransform>()
                 .Build();
 
             var agentEntities = agentQuery.ToEntityArray(Allocator.Temp);
             var agentTransforms = agentQuery.ToComponentDataArray<LocalTransform>(Allocator.Temp);
+            var relationshipLookup = SystemAPI.GetComponentLookup<CombatRelationship>(true);
 
-            // Build agent data array
             var agents = new NativeArray<AgentData>(agentEntities.Length, Allocator.Temp);
             for (int i = 0; i < agentEntities.Length; i++)
             {
@@ -50,121 +43,114 @@ namespace BovineLabs.Combat.Systems
                 {
                     Entity = agentEntities[i],
                     Position = agentTransforms[i].Position,
-                    Relationship = SystemAPI.GetComponentLookup<CombatRelationship>().HasComponent(agentEntities[i])
-                        ? SystemAPI.GetComponentLookup<CombatRelationship>()[agentEntities[i]]
-                        : default
+                    Relationship = relationshipLookup.HasComponent(agentEntities[i])
+                        ? relationshipLookup[agentEntities[i]]
+                        : default,
                 };
             }
 
-            // Step 2: For each sensing entity (has CombatAgentProfile)
-            foreach (var (profile, transform, memory, entity) in
-                SystemAPI.Query<RefRO<CombatAgentProfile>, RefRO<LocalTransform>, RefRW<TargetMemory>>()
-                    .WithAll<CombatAgent>()
-                    .WithEntityAccess())
+            try
             {
-                var sensorRadius = profile.ValueRO.SensorRadius;
-                var maxTargets = profile.ValueRO.MaxSensedTargets;
-                var sensorRadiusSq = sensorRadius * sensorRadius;
-
-                // a. Clear SensedTarget buffer
-                var sensedBuffer = commandBuffer.SetBuffer<SensedTarget>(entity);
-                // If buffer already exists, get it and clear
-                if (SystemAPI.HasBuffer<SensedTarget>(entity))
+                // Step 2: For each sensing entity
+                foreach (var (profile, transform, memory, entity) in
+                    SystemAPI.Query<RefRO<CombatAgentProfile>, RefRO<LocalTransform>, RefRW<TargetMemory>>()
+                        .WithAll<CombatAgent>()
+                        .WithEntityAccess())
                 {
-                    SystemAPI.GetBuffer<SensedTarget>(entity).Clear();
-                }
+                    var sensorRadius = profile.ValueRO.SensorRadius;
+                    var maxTargets = profile.ValueRO.MaxSensedTargets;
+                    var sensorRadiusSq = sensorRadius * sensorRadius;
+                    var myPos = transform.ValueRO.Position;
+                    var myRelationship = relationshipLookup.HasComponent(entity)
+                        ? relationshipLookup[entity]
+                        : default;
 
-                // Collect candidates within sensor radius
-                var candidates = new NativeList<SensedTarget>(Allocator.Temp);
-
-                // b. Check all other agents within SensorRadius
-                for (int j = 0; j < agents.Length; j++)
-                {
-                    if (agents[j].Entity == entity)
+                    // Clear sensed target buffer
+                    if (!SystemAPI.HasBuffer<SensedTarget>(entity))
                         continue;
 
-                    var diff = agents[j].Position - transform.ValueRO.Position;
-                    var distanceSq = math.lengthsq(diff);
+                    var sensedBuffer = SystemAPI.GetBuffer<SensedTarget>(entity);
+                    sensedBuffer.Clear();
 
-                    if (distanceSq > sensorRadiusSq)
-                        continue;
-
-                    // c. Compute DistanceSq, determine TargetRelation via CombatRelationship
-                    var relation = DetermineRelation(
-                        SystemAPI.GetComponentLookup<CombatRelationship>().HasComponent(entity)
-                            ? SystemAPI.GetComponentLookup<CombatRelationship>()[entity]
-                            : default,
-                        agents[j].Relationship);
-
-                    // d. Set SensedTargetFlags based on distance
-                    var flags = SensedTargetFlags.None;
-                    if (distanceSq < sensorRadiusSq)
-                        flags |= SensedTargetFlags.InLineOfSight;
-
-                    // Compute threat score based on relation and distance
-                    float threatScore = ComputeThreatScore(relation, distanceSq, sensorRadiusSq);
-
-                    var sensedTarget = new SensedTarget
+                    // Collect candidates within sensor radius
+                    var candidates = new NativeList<SensedTarget>(Allocator.Temp);
+                    try
                     {
-                        Entity = agents[j].Entity,
-                        Position = agents[j].Position,
-                        DistanceSq = distanceSq,
-                        ThreatScore = threatScore,
-                        Relation = relation,
-                        Flags = flags
-                    };
+                        for (int j = 0; j < agents.Length; j++)
+                        {
+                            if (agents[j].Entity == entity)
+                                continue;
 
-                    candidates.Add(sensedTarget);
-                }
+                            var diff = agents[j].Position - myPos;
+                            var distanceSq = math.lengthsq(diff);
 
-                // e. Sort by ThreatScore descending and keep only top MaxSensedTargets
-                candidates.Sort(new ThreatScoreComparer());
+                            if (distanceSq > sensorRadiusSq)
+                                continue;
 
-                var targetCount = math.min(candidates.Length, maxTargets);
-                for (int k = 0; k < targetCount; k++)
-                {
-                    SystemAPI.GetBuffer<SensedTarget>(entity).Add(candidates[k]);
-                }
+                            var relation = DetermineRelation(myRelationship, agents[j].Relationship);
+                            var flags = SensedTargetFlags.InLineOfSight;
+                            float threatScore = ComputeThreatScore(relation, distanceSq, sensorRadiusSq);
 
-                // f. Update TargetMemory for best hostile target
-                Entity bestHostile = Entity.Null;
-                float3 bestPosition = float3.zero;
-                float bestThreat = float.NegativeInfinity;
+                            candidates.Add(new SensedTarget
+                            {
+                                Entity = agents[j].Entity,
+                                Position = agents[j].Position,
+                                DistanceSq = distanceSq,
+                                ThreatScore = threatScore,
+                                Relation = relation,
+                                Flags = flags,
+                            });
+                        }
 
-                for (int k = 0; k < candidates.Length; k++)
-                {
-                    if (candidates[k].Relation == TargetRelation.Hostile &&
-                        candidates[k].ThreatScore > bestThreat)
+                        // Sort by ThreatScore descending, keep top MaxSensedTargets
+                        candidates.Sort(new ThreatScoreComparer());
+
+                        var targetCount = math.min(candidates.Length, maxTargets);
+                        for (int k = 0; k < targetCount; k++)
+                        {
+                            sensedBuffer.Add(candidates[k]);
+                        }
+
+                        // Update TargetMemory for best hostile
+                        Entity bestHostile = Entity.Null;
+                        float3 bestPosition = float3.zero;
+                        float bestThreat = float.NegativeInfinity;
+
+                        for (int k = 0; k < candidates.Length; k++)
+                        {
+                            if (candidates[k].Relation == TargetRelation.Hostile &&
+                                candidates[k].ThreatScore > bestThreat)
+                            {
+                                bestThreat = candidates[k].ThreatScore;
+                                bestHostile = candidates[k].Entity;
+                                bestPosition = candidates[k].Position;
+                            }
+                        }
+
+                        if (bestHostile != Entity.Null)
+                        {
+                            memory.ValueRW.LastTarget = bestHostile;
+                            memory.ValueRW.LastKnownPosition = bestPosition;
+                            memory.ValueRW.LastSeenTime = (float)SystemAPI.Time.ElapsedTime;
+                        }
+                    }
+                    finally
                     {
-                        bestThreat = candidates[k].ThreatScore;
-                        bestHostile = candidates[k].Entity;
-                        bestPosition = candidates[k].Position;
+                        candidates.Dispose();
                     }
                 }
-
-                if (bestHostile != Entity.Null)
-                {
-                    var mem = memory.ValueRW;
-                    mem.LastTarget = bestHostile;
-                    mem.LastKnownPosition = bestPosition;
-                    mem.LastSeenTime = (float)SystemAPI.Time.ElapsedTime;
-                    memory.ValueRW = mem;
-                }
-
-                candidates.Dispose();
             }
-
-            commandBuffer.Playback(state.EntityManager);
-            commandBuffer.Dispose();
-
-            agents.Dispose();
-            agentEntities.Dispose();
-            agentTransforms.Dispose();
+            finally
+            {
+                agents.Dispose();
+                agentEntities.Dispose();
+                agentTransforms.Dispose();
+            }
         }
 
         private static TargetRelation DetermineRelation(CombatRelationship self, CombatRelationship other)
         {
-            if (self.FactionId == other.FactionId)
+            if (self.FactionId == other.FactionId && self.FactionId != 0)
                 return TargetRelation.Friendly;
 
             if (self.IsHostileTo(other))
@@ -175,16 +161,14 @@ namespace BovineLabs.Combat.Systems
 
         private static float ComputeThreatScore(TargetRelation relation, float distanceSq, float sensorRadiusSq)
         {
-            // Hostile targets are highest priority, closer = more threatening
             float baseScore = relation switch
             {
                 TargetRelation.Hostile => 100f,
                 TargetRelation.Neutral => 50f,
                 TargetRelation.Friendly => 10f,
-                _ => 0f
+                _ => 0f,
             };
 
-            // Invert distance so closer targets score higher
             float distanceFactor = 1f - math.saturate(distanceSq / sensorRadiusSq);
             return baseScore + distanceFactor * 50f;
         }
@@ -193,7 +177,6 @@ namespace BovineLabs.Combat.Systems
         {
             public int Compare(SensedTarget a, SensedTarget b)
             {
-                // Descending order by ThreatScore
                 return b.ThreatScore.CompareTo(a.ThreatScore);
             }
         }

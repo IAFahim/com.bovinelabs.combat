@@ -1,5 +1,4 @@
 using Unity.Burst;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
@@ -9,9 +8,12 @@ namespace BovineLabs.Combat.Systems
 {
     /// <summary>
     /// The ONLY system that writes PhysicsVelocity from resolved combat motion.
-    /// Reads <see cref="ResolvedMotion"/> after priority arbitration and applies
-    /// the resulting movement to <see cref="PhysicsVelocity"/>.
+    /// Reads ResolvedMotion after priority arbitration and applies
+    /// the resulting movement to PhysicsVelocity.
     /// Angular velocity is intentionally left untouched (handled by facing system).
+    ///
+    /// Runs in CombatMotionResolveGroup which is ordered before PhysicsSystemGroup,
+    /// ensuring velocity is written before the physics step.
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(CombatMotionResolveGroup))]

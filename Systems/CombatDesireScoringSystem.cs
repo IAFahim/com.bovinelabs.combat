@@ -41,88 +41,89 @@ namespace BovineLabs.Combat.Systems
                 var attackRangeSq = brain.ValueRO.AttackRange * brain.ValueRO.AttackRange;
                 var aggression = brain.ValueRO.Aggression;
                 var threatSensitivity = brain.ValueRO.ThreatSensitivity;
-                var fleeThreshold = brain.ValueRO.FleeHealthThreshold;
 
                 // Collect candidate desires
                 var candidates = new NativeList<CombatDesire>(Allocator.Temp);
-
-                for (int i = 0; i < sensedTargets.Length; i++)
+                try
                 {
-                    var target = sensedTargets[i];
-
-                    if (target.Relation != TargetRelation.Hostile)
-                        continue;
-
-                    var distSq = target.DistanceSq;
-                    var threat = target.ThreatScore;
-
-                    // Attack desire: within attack range
-                    if (distSq <= attackRangeSq)
+                    for (int i = 0; i < sensedTargets.Length; i++)
                     {
-                        var invDist = math.rsqrt(math.max(distSq, 0.001f));
-                        var score = invDist + threat * aggression;
-                        candidates.Add(new CombatDesire
+                        var target = sensedTargets[i];
+
+                        if (target.Relation != TargetRelation.Hostile)
+                            continue;
+
+                        var distSq = target.DistanceSq;
+                        var threat = target.ThreatScore;
+
+                        // Attack desire: within attack range
+                        if (distSq <= attackRangeSq)
                         {
-                            Type = CombatDesireType.Attack,
-                            Target = target.Entity,
-                            Position = target.Position,
-                            Score = score,
-                            Flags = CombatDesireFlags.RequiresTarget | CombatDesireFlags.Urgent,
-                        });
+                            var invDist = math.rsqrt(math.max(distSq, 0.001f));
+                            var score = invDist + threat * aggression;
+                            candidates.Add(new CombatDesire
+                            {
+                                Type = CombatDesireType.Attack,
+                                Target = target.Entity,
+                                Position = target.Position,
+                                Score = score,
+                                Flags = CombatDesireFlags.RequiresTarget | CombatDesireFlags.Urgent,
+                            });
+                        }
+
+                        // Engage desire: within engage range but not attack range
+                        if (distSq <= engageRangeSq && distSq > attackRangeSq)
+                        {
+                            var score = threat * aggression;
+                            candidates.Add(new CombatDesire
+                            {
+                                Type = CombatDesireType.Engage,
+                                Target = target.Entity,
+                                Position = target.Position,
+                                Score = score,
+                                Flags = CombatDesireFlags.RequiresTarget,
+                            });
+                        }
+
+                        // Flee desire: always considered for hostiles
+                        {
+                            var fleeScore = threat * threatSensitivity;
+                            candidates.Add(new CombatDesire
+                            {
+                                Type = CombatDesireType.Flee,
+                                Target = target.Entity,
+                                Position = target.Position,
+                                Score = fleeScore,
+                                Flags = CombatDesireFlags.RequiresPosition,
+                            });
+                        }
                     }
 
-                    // Engage desire: within engage range (but not already in attack range scored above)
-                    if (distSq <= engageRangeSq && distSq > attackRangeSq)
+                    // Sort by score descending (insertion sort, N is small)
+                    for (int i = 1; i < candidates.Length; i++)
                     {
-                        var score = threat * aggression;
-                        candidates.Add(new CombatDesire
+                        var key = candidates[i];
+                        var j = i - 1;
+                        while (j >= 0 && candidates[j].Score < key.Score)
                         {
-                            Type = CombatDesireType.Engage,
-                            Target = target.Entity,
-                            Position = target.Position,
-                            Score = score,
-                            Flags = CombatDesireFlags.RequiresTarget,
-                        });
+                            candidates[j + 1] = candidates[j];
+                            j--;
+                        }
+                        candidates[j + 1] = key;
                     }
 
-                    // Flee desire: always considered, scored by threat sensitivity
-                    // High threat + high sensitivity => strong flee desire
-                    // The actual flee decision is modulated by FleeHealthThreshold applied externally
+                    // Write top desires to buffer
+                    desires.Clear();
+                    var count = math.min(candidates.Length, MaxDesires);
+                    for (int i = 0; i < count; i++)
                     {
-                        var fleeScore = threat * threatSensitivity;
-                        candidates.Add(new CombatDesire
-                        {
-                            Type = CombatDesireType.Flee,
-                            Target = target.Entity,
-                            Position = target.Position,
-                            Score = fleeScore,
-                            Flags = CombatDesireFlags.RequiresPosition,
-                        });
+                        desires.Add(candidates[i]);
                     }
                 }
-
-                // Sort by score descending (simple insertion sort, N is small)
-                for (int i = 1; i < candidates.Length; i++)
+                finally
                 {
-                    var key = candidates[i];
-                    var j = i - 1;
-                    while (j >= 0 && candidates[j].Score < key.Score)
-                    {
-                        candidates[j + 1] = candidates[j];
-                        j--;
-                    }
-                    candidates[j + 1] = key;
+                    candidates.Dispose();
                 }
-
-                // Write top desires to buffer
-                desires.Clear();
-                var count = math.min(candidates.Length, MaxDesires);
-                for (int i = 0; i < count; i++)
-                {
-                    desires.Add(candidates[i]);
-                }
-
-                candidates.Dispose();
             }
         }
     }
