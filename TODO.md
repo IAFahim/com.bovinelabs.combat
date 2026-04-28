@@ -1,53 +1,60 @@
 # TODO.md - Combat Movement System
 
-## Status: ALL CORE MODULES COMPLETE
+## Status: ALL MODULES COMPLETE + SPATIAL AWARENESS LAYER
 
 ### What's Built
-- **12 git commits** pushed to https://github.com/IAFahim/com.bovinelabs.combat
-- **90 C# source files**, **10,835 lines** of algorithm-centric code
-- **20 independent behavior modules**, each in own asmdef
-- **15 test assemblies** with 250+ test cases
-- **0 compilation errors** on Unity 6000.5.0b1 (verified before Library rebuild)
+- **18 git commits** pushed to https://github.com/IAFahim/com.bovinelabs.combat
+- **100 C# source files**, **12,119 lines** (6,834 runtime + 5,285 test)
+- **22 independent behavior modules**, each in own asmdef
+- **20 test assemblies** with 318 test methods
+- **0 compilation errors** on Unity 6000.5.0b1 (batch mode verified)
+- **0 runtime bugs** (code review passed, 5 critical + 2 high + 4 medium fixed)
 
-### Modules
+### Spatial Awareness Layer (NEW)
+
+Two new modules that provide O(1) neighbor queries and grid-based tactical analysis:
+
+| Module | Types | Systems | Key Feature |
+|--------|-------|---------|-------------|
+| **SpatialIntelligence** | 3 components + math | 1 (IJobEntity) + 1 (IJobChunk gather) | BovineLabs.Core.SpatialMap broadphase, DynamicBuffer\<SpatialNeighborData\>, SpatialThreatAssessment |
+| **GridIntelligence** | 2 components + math | 1 (main-thread foreach) | Per-cell enemy density, danger/safest/flanking directions, cover steering |
+
+### All Modules
 
 | # | Module | Types | Systems | Key Algorithm |
 |---|--------|-------|---------|---------------|
-| 1 | Core | 15 | 1 (ApplySteering) | SteeringMath (12 methods), LineOfSightMath, CombatSteeringGroup |
-| 2 | Steering | 6 | 6 | Seek, Flee, Arrive, Pursue, Evade, Wander |
-| 3 | Navigation | 5 | 1 | NavMesh bridge (Recast), PathFollow, PathCorridor |
-| 4 | Avoidance | 2 | 1 | RVO-like velocity obstacles, SpatialHash |
-| 5 | ObstacleAvoidance | 2 | 1 | WallSliding, RaycastFan, obstacle repulsion |
-| 6 | Group | 3 | 1 | Cohesion, Separation, Alignment (boids) |
-| 7 | Formation | 4 | 1 | Line/Wedge/Grid/Circle/Column/V + SlotAssignment |
-| 8 | Follow | 3 | 1 | FollowLeader, FollowChain |
-| 9 | Patrol | 4 | 1 | Waypoint cycling, Area wandering |
-| 10 | Charge | 2 | 1 | Straight-line rush with acceleration |
-| 11 | Flank | 2 | 1 | Side/behind approach via target facing |
-| 12 | Retreat | 2 | 1 | Orderly withdrawal to safe distance |
-| 13 | Kite | 2 | 1 | Hit-and-run at optimal range |
-| 14 | Surround | 2 | 1 | Even circle encirclement |
-| 15 | Guard | 2 | 1 | Post defense + engage + return |
-| 16 | Ambush | 3 | 1 | Hide + wait + spring attack |
-| 17 | TargetSelection | 2 | 1 | Nearest, Weakest, MostThreatening + cone filter |
-| 18 | Blend | 2 | 1 | Weighted blend + priority select |
-| 19 | CombatAI | 3 | 1 | State machine: Idle/Engaging/Fleeing/Following |
-| 20 | RoomTraversal | 5 | 1 | BFS room graph, door finding |
-
-### Live Verification (before Library rebuild)
-- 32/32 key types loaded and verified
-- SteeringMath: 14/14 PASS
-- Combat Math: 20/21 PASS (1 test assumption error)
-- 34 assemblies compiled clean
-- ApplySteeringSystem moves entities based on steering output
+| 1 | Core | 16 | 1 (ApplySteering) | SteeringMath (12 methods), LineOfSightMath, CombatSteeringGroup, SpatialNeighborData |
+| 2 | SpatialIntelligence | 3 | 2 | SpatialMap broadphase, neighbor buffer, threat assessment |
+| 3 | GridIntelligence | 2 | 1 | Grid cell analysis, danger/safe/flanking directions |
+| 4 | Steering | 6 | 6 | Seek, Flee, Arrive, Pursue, Evade, Wander |
+| 5 | Navigation | 5 | 1 | NavMesh bridge (Recast), PathFollow, PathCorridor |
+| 6 | Avoidance | 2 | 1 | RVO-like velocity obstacles, SpatialHash |
+| 7 | ObstacleAvoidance | 2 | 1 | WallSliding, RaycastFan, obstacle repulsion |
+| 8 | Group | 3 | 1 | Cohesion, Separation, Alignment (boids) |
+| 9 | Formation | 4 | 1 | Line/Wedge/Grid/Circle/Column/V + SlotAssignment |
+| 10 | Follow | 3 | 1 | FollowLeader, FollowChain |
+| 11 | Patrol | 4 | 1 | Waypoint cycling, Area wandering |
+| 12 | Charge | 2 | 1 | Straight-line rush with acceleration |
+| 13 | Flank | 2 | 1 | Side/behind approach via target facing |
+| 14 | Retreat | 2 | 1 | Orderly withdrawal to safe distance |
+| 15 | Kite | 2 | 1 | Hit-and-run at optimal range |
+| 16 | Surround | 2 | 1 | Even circle encirclement |
+| 17 | Guard | 2 | 1 | Post defense + engage + return |
+| 18 | Ambush | 3 | 1 | Hide + wait + spring attack |
+| 19 | TargetSelection | 2 | 1 | Nearest, Weakest, MostThreatening + cone filter |
+| 20 | Blend | 2 | 1 | Weighted blend + priority select |
+| 21 | CombatAI | 3 | 1 | State machine: Idle/Engaging/Fleeing/Following |
+| 22 | RoomTraversal | 5 | 1 | BFS room graph, door finding |
 
 ### Test Coverage
 
 | Test Assembly | Test Count | Covers |
 |--------------|-----------|--------|
-| Core.Tests | 34 + 4 ECS | SteeringMath, Components, LineOfSight, ApplySteering |
+| Core.Tests | 38 | SteeringMath, Components, LineOfSight, ApplySteering |
+| SpatialIntelligence.Tests | 10 | ComputeThreatDensity, ComputeCentroid, ComputeThreatAssessment |
+| GridIntelligence.Tests | 8 | WorldToCell, CellToWorld, ComputeFlankingDirection, ComputeGridAnalysis |
 | Steering.Tests | 4 | WanderMath |
-| Avoidance.Tests | 14 + 6 | AvoidanceMath, SpatialHash |
+| Avoidance.Tests | 20 | AvoidanceMath, SpatialHash |
 | Formation.Tests | 20 | All 6 formation patterns |
 | Charge.Tests | 16 | Charge direction, validity, force |
 | Flank.Tests | 10 | Flank position, direction |
@@ -62,9 +69,20 @@
 | ObstacleAvoidance.Tests | 12 | WallSliding, RaycastFan, ComputeForce |
 | Ambush.Tests | 16 | IsEnemyInTrigger, AmbushForce, HasReached |
 | CombatAI.Tests | 16 | ThreatScore, ShouldEngage/Flee/Disengage |
-| Navigation.Tests | 15 | PathCorridor, PathRequest, NavMeshAreaCosts |
+| Navigation.Tests | 17 | PathCorridor, PathRequest, NavMeshAreaCosts, PathWaypoint |
 
-### Pending (needs Unity rebuild to complete)
-- Unity is rebuilding Library from scratch (full Library delete was needed to pick up new .cs files)
-- Once rebuilt, run all 250+ tests through Unity Test Runner
-- ECS integration tests need verification with ApplySteeringSystem
+### Build Verification
+- Unity 6000.5.0b1 batch mode: 0 CS errors, 2251 assemblies compiled in ~4 seconds
+- SpatialIntelligence.dll, SpatialIntelligence.Tests.dll
+- GridIntelligence.dll, GridIntelligence.Tests.dll
+
+### Code Review (passed)
+All critical runtime bugs found and fixed:
+- PositionBuilder vs IEnableableComponent assertion (replaced with manual IJobChunk)
+- Query missing components for IJobEntity (added SpatialThreatAssessment + SpatialNeighborData)
+- goto done skipping threat counting when buffer full (replaced with bufferFull flag)
+- entityInQueryIndex not supported in Entities 6.x (removed, use Entity comparison)
+- IJobEntity must be in own file (split from ISystem file)
+- Threat counting blocked by team filter (restructured control flow)
+- Unused allocation cellNeighborCounts (removed)
+- SteeringForce stale values when threats clear (reset to zero)
