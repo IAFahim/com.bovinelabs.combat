@@ -1,12 +1,13 @@
 {
-    "name": "BovineLabs.Combat.Core",
-    "rootNamespace": "BovineLabs.Combat.Core",
+    "name": "BovineLabs.Combat.Timeline",
+    "rootNamespace": "BovineLabs.Combat.Timeline",
     "references": [
         "Unity.Burst",
         "Unity.Collections",
         "Unity.Entities",
         "Unity.Mathematics",
         "Unity.Transforms",
+        "BovineLabs.Combat.Core",
         "BovineLabs.Timeline.Data",
         "BovineLabs.Timeline"
     ],

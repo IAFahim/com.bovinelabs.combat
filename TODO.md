@@ -1,88 +1,66 @@
-# TODO.md - Combat Movement System
+# TODO.md - Combat v2: Timeline-Native Architecture
 
-## Status: ALL MODULES COMPLETE + SPATIAL AWARENESS LAYER
+## Status: COMPILED CLEAN
 
 ### What's Built
-- **18 git commits** pushed to https://github.com/IAFahim/com.bovinelabs.combat
-- **100 C# source files**, **12,119 lines** (6,834 runtime + 5,285 test)
-- **22 independent behavior modules**, each in own asmdef
-- **20 test assemblies** with 318 test methods
 - **0 compilation errors** on Unity 6000.5.0b1 (batch mode verified)
-- **0 runtime bugs** (code review passed, 5 critical + 2 high + 4 medium fixed)
+- **43 new C# files** across 3 new assemblies
+- **45 total combat assemblies** compiled (22 old modules + 3 new v2 assemblies + 20 test assemblies)
+- Old modules remain fully functional alongside new v2 architecture
 
-### Spatial Awareness Layer (NEW)
+### New Assemblies
 
-Two new modules that provide O(1) neighbor queries and grid-based tactical analysis:
+| Assembly | Files | Purpose |
+|----------|-------|---------|
+| BovineLabs.Combat.Systems | 7 systems | Motion resolve, physics motor, facing, forced motion, sensors, brain |
+| BovineLabs.Combat.Timeline | 15 clips | Motion/Facing/Targeting/Lock/Event timeline clips |
+| BovineLabs.Combat.V2.Tests | 12 tests | Pure math tests for v2 types |
 
-| Module | Types | Systems | Key Feature |
-|--------|-------|---------|-------------|
-| **SpatialIntelligence** | 3 components + math | 1 (IJobEntity) + 1 (IJobChunk gather) | BovineLabs.Core.SpatialMap broadphase, DynamicBuffer\<SpatialNeighborData\>, SpatialThreatAssessment |
-| **GridIntelligence** | 2 components + math | 1 (main-thread foreach) | Per-cell enemy density, danger/safest/flanking directions, cover steering |
+### Architecture
 
-### All Modules
+```
+Stats/Essence -> Spatial/Sensors -> Brain/Reaction -> Timeline Directors
+    -> Motion Lanes (Forced > Attack > Locomotion > Navigation > Idle)
+    -> Lane Gate -> ResolvedMotion + ResolvedFacing
+    -> Physics Motor (ONLY PhysicsVelocity writer)
+    -> Unity.Physics
+```
 
-| # | Module | Types | Systems | Key Algorithm |
-|---|--------|-------|---------|---------------|
-| 1 | Core | 16 | 1 (ApplySteering) | SteeringMath (12 methods), LineOfSightMath, CombatSteeringGroup, SpatialNeighborData |
-| 2 | SpatialIntelligence | 3 | 2 | SpatialMap broadphase, neighbor buffer, threat assessment |
-| 3 | GridIntelligence | 2 | 1 | Grid cell analysis, danger/safe/flanking directions |
-| 4 | Steering | 6 | 6 | Seek, Flee, Arrive, Pursue, Evade, Wander |
-| 5 | Navigation | 5 | 1 | NavMesh bridge (Recast), PathFollow, PathCorridor |
-| 6 | Avoidance | 2 | 1 | RVO-like velocity obstacles, SpatialHash |
-| 7 | ObstacleAvoidance | 2 | 1 | WallSliding, RaycastFan, obstacle repulsion |
-| 8 | Group | 3 | 1 | Cohesion, Separation, Alignment (boids) |
-| 9 | Formation | 4 | 1 | Line/Wedge/Grid/Circle/Column/V + SlotAssignment |
-| 10 | Follow | 3 | 1 | FollowLeader, FollowChain |
-| 11 | Patrol | 4 | 1 | Waypoint cycling, Area wandering |
-| 12 | Charge | 2 | 1 | Straight-line rush with acceleration |
-| 13 | Flank | 2 | 1 | Side/behind approach via target facing |
-| 14 | Retreat | 2 | 1 | Orderly withdrawal to safe distance |
-| 15 | Kite | 2 | 1 | Hit-and-run at optimal range |
-| 16 | Surround | 2 | 1 | Even circle encirclement |
-| 17 | Guard | 2 | 1 | Post defense + engage + return |
-| 18 | Ambush | 3 | 1 | Hide + wait + spring attack |
-| 19 | TargetSelection | 2 | 1 | Nearest, Weakest, MostThreatening + cone filter |
-| 20 | Blend | 2 | 1 | Weighted blend + priority select |
-| 21 | CombatAI | 3 | 1 | State machine: Idle/Engaging/Fleeing/Following |
-| 22 | RoomTraversal | 5 | 1 | BFS room graph, door finding |
+### Core Types (in BovineLabs.Combat.Core)
+- CombatMotionData + CombatMotionMode + CombatMotionFlags
+- CombatMotionMixer (IMixer<CombatMotionData>)
+- AttackMotionAnimated, LocomotionAnimated, NavigationAnimated, AvoidanceAnimated
+- ResolvedMotion, ResolvedFacing
+- FacingData + FacingMode + FacingFlags
+- ForcedMotionRequest + ForcedMotionState + ForcedMotionFlags
+- CombatControlMask
+- CombatAgent + CombatAgentProfile
+- CombatGroups (6 system groups)
+- SensedTarget + TargetRelation + SensedTargetFlags
+- TargetMemory, TargetSlot, CombatTargets, CombatRelationship
+- CombatDesire + CombatDesireType + CombatDesireFlags
+- CombatBrainProfile
+- CombatHitEvent, CombatDeathEvent, SuperArmor, CombatLockState
 
-### Test Coverage
+### Systems (in BovineLabs.Combat.Systems)
+- CombatMotionResolveSystem - Lane gate resolver
+- CombatPhysicsMotorSystem - Only writer to PhysicsVelocity
+- FacingResolveSystem - Facing lane to ResolvedFacing
+- ForcedMotionResolveSystem - Knockback/stun/grab processing
+- SensorQuerySystem - Distance-based target sensing
+- TargetPatchSystem - Target memory updates
+- CombatDesireScoringSystem - AI desire scoring
+- CombatReactionBridgeSystem - Desire-to-target bridging
 
-| Test Assembly | Test Count | Covers |
-|--------------|-----------|--------|
-| Core.Tests | 38 | SteeringMath, Components, LineOfSight, ApplySteering |
-| SpatialIntelligence.Tests | 10 | ComputeThreatDensity, ComputeCentroid, ComputeThreatAssessment |
-| GridIntelligence.Tests | 8 | WorldToCell, CellToWorld, ComputeFlankingDirection, ComputeGridAnalysis |
-| Steering.Tests | 4 | WanderMath |
-| Avoidance.Tests | 20 | AvoidanceMath, SpatialHash |
-| Formation.Tests | 20 | All 6 formation patterns |
-| Charge.Tests | 16 | Charge direction, validity, force |
-| Flank.Tests | 10 | Flank position, direction |
-| Retreat.Tests | 7 | Retreat direction, safe distance |
-| Kite.Tests | 12 | Kite position, ShouldKite |
-| Surround.Tests | 11 | Surround positions, slot assignment |
-| Guard.Tests | 13 | ShouldEngage, ShouldReturn |
-| TargetSelection.Tests | 19 | Nearest, Weakest, MostThreatening, IsInCone |
-| Blend.Tests | 16 | WeightedBlend, PrioritySelect, Truncate |
-| RoomTraversal.Tests | 21 | FindRoom, FindDoor, BFS PlanRoute |
-| Follow.Tests | 10 | FollowPosition, ChainPosition |
-| ObstacleAvoidance.Tests | 12 | WallSliding, RaycastFan, ComputeForce |
-| Ambush.Tests | 16 | IsEnemyInTrigger, AmbushForce, HasReached |
-| CombatAI.Tests | 16 | ThreatScore, ShouldEngage/Flee/Disengage |
-| Navigation.Tests | 17 | PathCorridor, PathRequest, NavMeshAreaCosts, PathWaypoint |
-
-### Build Verification
-- Unity 6000.5.0b1 batch mode: 0 CS errors, 2251 assemblies compiled in ~4 seconds
-- SpatialIntelligence.dll, SpatialIntelligence.Tests.dll
-- GridIntelligence.dll, GridIntelligence.Tests.dll
-
-### Code Review (passed)
-All critical runtime bugs found and fixed:
-- PositionBuilder vs IEnableableComponent assertion (replaced with manual IJobChunk)
-- Query missing components for IJobEntity (added SpatialThreatAssessment + SpatialNeighborData)
-- goto done skipping threat counting when buffer full (replaced with bufferFull flag)
-- entityInQueryIndex not supported in Entities 6.x (removed, use Entity comparison)
-- IJobEntity must be in own file (split from ISystem file)
-- Threat counting blocked by team filter (restructured control flow)
-- Unused allocation cellNeighborCounts (removed)
-- SteeringForce stale values when threats clear (reset to zero)
+### Performance Rules Enforced
+1. Only one system writes PhysicsVelocity
+2. No behavior scans all enemies (shared SensedTarget buffer)
+3. Sensor query runs once per entity
+4. Top-K sensed targets (max 8)
+5. No per-frame allocations in hot paths
+6. No giant shared motion intent buffer
+7. No designer-authored priority numbers
+8. Timeline clips bake data; runtime clips are simple
+9. Default lane value is always None
+10. Forced motion is separate from desired motion
+11. Facing is separate from movement

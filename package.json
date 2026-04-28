@@ -1,9 +1,9 @@
 {
   "name": "com.bovinelabs.combat",
   "displayName": "BovineLabs Combat Movement",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "unity": "6000.0",
-  "description": "S-tier combat movement system for Unity DOTS/ECS RPG games. Algorithm-centric, designer-friendly, fully modular. 24 independent behavior modules for steering, formation, avoidance, flanking, and more.",
+  "description": "Timeline-native combat movement system for Unity DOTS/ECS. Structural motion lanes, physics-authoritative motor, shared sensor pipeline, combat brain with desire scoring. 22 legacy steering modules + v2 timeline architecture.",
   "keywords": [
     "dots",
     "ecs",
@@ -14,7 +14,10 @@
     "ai",
     "rpg",
     "navigation",
-    "recast"
+    "recast",
+    "timeline",
+    "motion-lanes",
+    "physics-motor"
   ],
   "author": {
     "name": "BovineLabs",
